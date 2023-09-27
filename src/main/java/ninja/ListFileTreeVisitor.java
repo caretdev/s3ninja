@@ -11,6 +11,7 @@ package ninja;
 import sirius.kernel.commons.Hasher;
 import sirius.kernel.commons.Strings;
 import sirius.kernel.health.Counter;
+import sirius.kernel.xml.AbstractStructuredOutput;
 import sirius.kernel.xml.XMLStructuredOutput;
 
 import javax.annotation.Nullable;
@@ -27,7 +28,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 class ListFileTreeVisitor extends SimpleFileVisitor<Path> {
 
     private final Counter objectCount;
-    private final XMLStructuredOutput output;
+    private final AbstractStructuredOutput output;
     private final int limit;
     private final String marker;
     private final String prefix;
@@ -39,6 +40,20 @@ class ListFileTreeVisitor extends SimpleFileVisitor<Path> {
     // as prefix can't be null when replacing as the usePrefix acts as a guard.
     @SuppressWarnings("squid:S2259")
     protected ListFileTreeVisitor(XMLStructuredOutput output,
+                                  int limit,
+                                  @Nullable String marker,
+                                  @Nullable String prefix) {
+        this.output = output;
+        this.limit = limit;
+        this.marker = marker;
+        this.prefix = prefix;
+        objectCount = new Counter();
+        useLimit = limit > 0;
+        usePrefix = Strings.isFilled(prefix);
+        markerReached = Strings.isEmpty(marker);
+    }
+
+    protected ListFileTreeVisitor(MXMLStructuredOutput output,
                                   int limit,
                                   @Nullable String marker,
                                   @Nullable String prefix) {

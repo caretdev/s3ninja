@@ -200,6 +200,26 @@ public class Bucket {
         output.endOutput();
     }
 
+    public void outputObjectsV1(MXMLStructuredOutput output,
+                                int limit,
+                                @Nullable String marker,
+                                @Nullable String prefix) {
+        ListFileTreeVisitor visitor = new ListFileTreeVisitor(output, limit, marker, prefix);
+
+        output.beginOutput("ListBucketResult", Attribute.set("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/"));
+        output.property("Name", getName());
+        output.property("MaxKeys", limit);
+        output.property("Marker", marker);
+        output.property("Prefix", prefix);
+        try {
+            walkFileTreeOurWay(folder.toPath(), visitor);
+        } catch (IOException e) {
+            throw Exceptions.handle(e);
+        }
+        output.property("IsTruncated", limit > 0 && visitor.getCount() > limit);
+        output.endOutput();
+    }
+
     /**
      * Sends a list of at most the provided number of stored objects using
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/API/API_ListObjectsV2.html">V2</a> format.
@@ -224,6 +244,27 @@ public class Bucket {
             walkFileTreeOurWay(folder.toPath(), visitor);
         } catch (IOException exception) {
             throw Exceptions.handle(Storage.LOG, exception);
+        }
+        output.property("IsTruncated", limit > 0 && visitor.getCount() > limit);
+        output.property("KeyCount", visitor.getCount());
+        output.endOutput();
+    }
+
+    public void outputObjectsV2(MXMLStructuredOutput output,
+                                int limit,
+                                @Nullable String marker,
+                                @Nullable String prefix) {
+        ListFileTreeVisitor visitor = new ListFileTreeVisitor(output, limit, marker, prefix);
+
+        output.beginOutput("ListBucketResult", Attribute.set("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/"));
+        output.property("Name", getName());
+        output.property("MaxKeys", limit);
+        output.property("StartAfter", marker);
+        output.property("Prefix", prefix);
+        try {
+            walkFileTreeOurWay(folder.toPath(), visitor);
+        } catch (IOException e) {
+            throw Exceptions.handle(e);
         }
         output.property("IsTruncated", limit > 0 && visitor.getCount() > limit);
         output.property("KeyCount", visitor.getCount());

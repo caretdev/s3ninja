@@ -410,7 +410,8 @@ public class S3Dispatcher implements WebDispatcher {
 
             response.setHeader(HTTP_HEADER_NAME_CONTENT_TYPE, CONTENT_TYPE_XML);
 
-            XMLStructuredOutput out = response.xml();
+//             XMLStructuredOutput out = response.xml();
+            MXMLStructuredOutput out = new MXMLStructuredOutput(response.outputStream(HttpResponseStatus.OK, MimeHelper.TEXT_XML));
             out.beginOutput("ListAllMyBucketsResult",
                             Attribute.set("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/"));
             out.property("hint", "Goto: " + webContext.getBaseURL() + "/ui to visit the admin UI");
@@ -430,13 +431,20 @@ public class S3Dispatcher implements WebDispatcher {
             throw new IllegalArgumentException(webContext.getRequest().method().name());
         }
     }
-
     private void outputOwnerInfo(XMLStructuredOutput out, String name) {
         out.beginObject(name);
         out.property("ID", "initiatorId");
         out.property(RESPONSE_DISPLAY_NAME, "initiatorName");
         out.endObject();
     }
+
+    private void outputOwnerInfo(MXMLStructuredOutput out, String name) {
+        out.beginObject(name);
+        out.property("ID", "initiatorId");
+        out.property(RESPONSE_DISPLAY_NAME, "initiatorName");
+        out.endObject();
+    }
+
 
     /**
      * Dispatching method handling bucket specific calls without content (HEAD, DELETE, GET and PUT)
@@ -689,7 +697,8 @@ public class S3Dispatcher implements WebDispatcher {
         Response response = webContext.respondWith();
         response.setHeader(HTTP_HEADER_NAME_CONTENT_TYPE, CONTENT_TYPE_XML);
 
-        bucket.outputObjectsV1(response.xml(), maxKeys, marker, prefix);
+        MXMLStructuredOutput out = new MXMLStructuredOutput(response.outputStream(HttpResponseStatus.OK, MimeHelper.TEXT_XML));
+        bucket.outputObjectsV1(out, maxKeys, marker, prefix);
     }
 
     private void listObjectsV2(WebContext webContext, Bucket bucket) {
@@ -700,7 +709,8 @@ public class S3Dispatcher implements WebDispatcher {
         Response response = webContext.respondWith();
         response.setHeader(HTTP_HEADER_NAME_CONTENT_TYPE, CONTENT_TYPE_XML);
 
-        bucket.outputObjectsV2(response.xml(), maxKeys, marker, prefix);
+        MXMLStructuredOutput out = new MXMLStructuredOutput(response.outputStream(HttpResponseStatus.OK, MimeHelper.TEXT_XML));
+        bucket.outputObjectsV2(out, maxKeys, marker, prefix);
     }
 
     /**
